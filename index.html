@@ -39,19 +39,29 @@
       <p id="finale">-</p>
       <h5 class="label"><b>🏆 Campeón:</b></h5>
       <p id="winner">-</p>
-      <h5 class="label"><b>⬇️ Debacle:</b></h5>
+      <h5 class="label"><b>⬇️ Decepción:</b></h5>
       <p id="loser">-</p>
     </div>
 
     <div class="text-center mt-5">
       <button
-        id="button"
+        id="generate-btn"
         type="button"
         class="btn btn-primary"
         onclick="getPrediction()"
       >
         Generar apuesta
       </button>
+      <button
+        id="share-btn"
+        type="button"
+        class="btn btn-primary"
+        onclick="share()"
+        disabled
+      >
+        Compartir
+      </button>
+      
     </div>
   </body>
   <script>
@@ -59,9 +69,12 @@
     const winnerField = document.getElementById("winner");
     const loserField = document.getElementById("loser");
 
-    const button = document.getElementById("button");
+    const generateButton = document.getElementById("generate-btn");
+    const shareButton = document.getElementById("share-btn");
+    
+    let textToShare = null;
 
-    const teams = [
+    const TEAMS = [
       "🇩🇪 Alemania",
       "🇸🇦 Arabia Saudí",
       "🇦🇷 Argentina",
@@ -95,48 +108,85 @@
       "🇹🇳 Túnez",
       "🇺🇾 Uruguay",
     ];
+    
+    const TOP_TEAMS = [
+      "🇩🇪 Alemania",
+      "🇦🇷 Argentina",
+      "🇧🇷 Brasil",
+      "🇪🇸 España",
+      "🇺🇸 Estados Unidos",
+      "🇫🇷 Francia",
+      "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra",
+      "🇲🇽 México",
+      "🇳🇱 Países Bajos",
+      "🇵🇹 Portugal",
+    ];
 
     const getPrediction = () => {
       getResults();
-      button.textContent = "Generar otra";
+      generateButton.textContent = "Generar otra";
+      shareButton.disabled = false;
     };
-
+    
     const getResults = () => {
-      const team1 = getTeam();
-      let team2 = getTeam();
+      const finalists = getFinale();
+      const winner = getWinner(finalists);
+      const loser = getLoser(finalists);
+      
+      printResults(finalists, winner, loser);
+      
+      const [finalist1, finalist2] = finalists;
+      
+      textToShare = `⚽️ Esta es mi porra para el Mundial de Catar:
+Final: ${finalist1} - ${finalist2};
+Campeón: ${winner}
+Decepción: ${loser}
+
+Haz la tuya en:
+https://abelespana.github.io`
+      
+      if (winner === "🇪🇸 España") {
+        generateButton.disabled = true;
+      }
+    }
+
+    const getFinale = () => {
+      const team1 = getRandomTeam();
+      let team2 = getRandomTeam();
 
       while (team1 === team2) {
-        // alert("¡mismo equipo!");
-        team2 = getTeam();
+        team2 = getRandomTeam();
       }
 
-      finaleField.textContent = `${team1} - ${team2}`;
-
-      const finalists = [team1, team2];
-
-      getWinner(finalists);
-      getLoser(finalists);
+      return [team1, team2];
     };
 
     getWinner = (finalists) => {
-      const winner = finalists[Math.floor(Math.random() * finalists.length)];
-      winnerField.textContent = `${winner}`;
-
-      if (winner === "🇪🇸 España") {
-        button.disabled = true;
-      }
+      return finalists[Math.floor(Math.random() * finalists.length)];
     };
 
     getLoser = (finalists) => {
-      const loserCandidates = teams.filter((team) => !finalists.includes(team));
-      const loser =
-        loserCandidates[Math.floor(Math.random() * loserCandidates.length)];
+      const loserCandidates = TOP_TEAMS.filter((team) => !finalists.includes(team));
+      return loserCandidates[Math.floor(Math.random() * loserCandidates.length)];
+    };
 
+    const getRandomTeam = () => {
+      return TEAMS[Math.floor(Math.random() * TEAMS.length)];
+    };
+    
+    const printResults = (finalists, winner, loser) => {
+      finaleField.textContent = `${finalists[0]} - ${finalists[1]}`;
+      winnerField.textContent = `${winner}`;
       loserField.textContent = `${loser}`;
-    };
-
-    const getTeam = () => {
-      return teams[Math.floor(Math.random() * teams.length)];
-    };
+    }
+    
+    const share = () => {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Porra mundial 2022',
+          text: textToShare,
+        });
+      }
+    }
   </script>
 </html>
